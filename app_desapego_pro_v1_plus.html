@@ -1,0 +1,3115 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Desapego Pro v1</title>
+    <!-- CDNs -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --danger: #ef4444;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --font-main: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        [data-theme="dark"] {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border: #334155;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.5);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            transition: background-color 0.3s, color 0.3s;
+            overflow-x: hidden;
+        }
+
+        /* Layout */
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 0;
+            margin-bottom: 2rem;
+            position: sticky;
+            top: 0;
+            background: var(--bg);
+            z-index: 100;
+        }
+
+        .brand h1 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .actions-top {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        /* Common Elements */
+        button {
+            cursor: pointer;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            font-family: inherit;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text);
+        }
+
+        .btn-ghost:hover {
+            background: var(--border);
+        }
+
+        .icon-btn {
+            padding: 0.5rem;
+            border-radius: 50%;
+        }
+
+        .btn-fab {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.5);
+            z-index: 900;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            padding: 0;
+            border: none;
+        }
+
+        .btn-fab:hover {
+            transform: scale(1.1) rotate(90deg);
+            background: var(--primary-hover);
+        }
+
+        .btn-fab i {
+            width: 28px;
+            height: 28px;
+        }
+
+        /* Search & Filters */
+        .search-bar {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex: 1;
+            margin: 0 1rem;
+            box-shadow: var(--shadow);
+        }
+
+        .search-bar input {
+            border: none;
+            background: transparent;
+            color: var(--text);
+            outline: none;
+            width: 100%;
+            font-size: 0.95rem;
+        }
+
+        .filter-bar {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            padding: 1rem 0;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            width: 100%;
+        }
+
+        .filter-bar select {
+            padding: 0.4rem 0.8rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            outline: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+
+        .filter-chip {
+            padding: 0.4rem 1rem;
+            border-radius: 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .filter-chip.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .filter-chip:hover {
+            border-color: var(--primary);
+        }
+
+        /* Tag Styles */
+        .tag-pill {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-right: 0.25rem;
+            margin-bottom: 0.25rem;
+            color: white;
+            white-space: nowrap;
+        }
+
+        .tag-pill.removable {
+            padding-right: 0.2rem;
+        }
+
+        .tag-remove {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            margin-left: 0.2rem;
+            padding: 0 0.2rem;
+            opacity: 0.8;
+        }
+
+        .tag-remove:hover {
+            opacity: 1;
+        }
+
+        /* Tag Manager */
+        .tag-list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 0.5rem;
+            background: var(--surface);
+        }
+
+        .tag-color-preview {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+
+        .category-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .category-header {
+            font-weight: 700;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+
+
+        .filter-chip.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 1rem;
+        }
+
+        .modal {
+            background: var(--surface);
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+            animation: modalSlide 0.3s ease-out;
+        }
+
+        @keyframes modalSlide {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        /* Grid */
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+            padding: 1rem 0;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+        }
+
+        .card-image {
+            height: 200px;
+            position: relative;
+            background: #eee;
+        }
+
+        .card-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-badge {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            backdrop-filter: blur(4px);
+        }
+
+        .card-content {
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .card-header h3 {
+            font-size: 1.1rem;
+            margin-top: 0.25rem;
+        }
+
+        .card-code {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .card-stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            background: var(--bg);
+            padding: 0.75rem;
+            border-radius: var(--radius);
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat .label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .stat .val {
+            font-weight: 700;
+            font-size: 0.9rem;
+        }
+
+        .stat.highlight .val {
+            color: var(--primary);
+        }
+
+        .stat.success .val {
+            color: var(--success);
+        }
+
+        .stat.success {
+            grid-column: span 2;
+            border-top: 1px solid var(--border);
+            padding-top: 0.5rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Status UI */
+        .status-badge {
+            font-size: 0.7rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .status-disponível {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .status-vendido {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
+        }
+
+        .status-doado {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .status-descartado {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .section-header {
+            grid-column: 1 / -1;
+            padding: 1rem 0;
+            font-weight: 800;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border-bottom: 2px solid var(--border);
+            margin-top: 1rem;
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            padding: 0.75rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary);
+        }
+
+        .media-upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .media-upload-zone:hover {
+            background: var(--bg);
+            border-color: var(--primary);
+        }
+
+        .upload-placeholder {
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .media-preview-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .media-item {
+            aspect-ratio: 1;
+            border-radius: var(--radius);
+            overflow: hidden;
+            position: relative;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            cursor: move;
+        }
+
+        .media-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .media-actions {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            display: flex;
+            gap: 2px;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+
+        .media-item:hover .media-actions {
+            opacity: 1;
+        }
+
+        .media-btn {
+            background: rgba(0, 0, 0, 0.6);
+            color: white;
+            border: none;
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .media-btn.delete-btn {
+            background: var(--danger);
+        }
+
+        .file-size {
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+            font-size: 9px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 1px 4px;
+            border-radius: 4px;
+            color: var(--text);
+        }
+
+        .media-item.reorder-selected {
+            border: 3px solid var(--primary);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
+            transform: scale(0.95);
+        }
+
+        .selection-badge {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--primary);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.2rem;
+            z-index: 10;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            pointer-events: none;
+        }
+
+        .cover-btn i {
+            color: var(--warning);
+        }
+
+        /* List View Styles */
+        .items-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .list-item {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .list-item:hover {
+            background: var(--bg);
+        }
+
+        .list-thumb {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .list-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .list-info {
+            flex: 1;
+        }
+
+        .list-info h3 {
+            font-size: 1rem;
+        }
+
+        .list-stats {
+            font-weight: 700;
+            color: var(--primary);
+            font-size: 1rem;
+        }
+
+        .list-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Selection & Batch Actions */
+        .selection-bar {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            padding: 0.75rem 1.5rem;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            display: none;
+            align-items: center;
+            gap: 1.5rem;
+            z-index: 500;
+            animation: slideUp 0.3s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translate(-50%, 20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translate(-50%, 0);
+                opacity: 1;
+            }
+        }
+
+        .selection-indicator {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            color: var(--primary);
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 900;
+            border: 2px solid var(--border);
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .card.selected .selection-indicator,
+        .list-item.selected .selection-indicator {
+            display: flex;
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .card.selected,
+        .list-item.selected {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+            box-shadow: 0 0 0 2px var(--primary);
+        }
+
+        .pin-btn {
+            position: absolute;
+            top: 0.75rem;
+            left: 0.75rem;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            padding: 0.4rem;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            color: var(--text-muted);
+        }
+
+        .pin-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .pin-indicator {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            background: var(--primary);
+            color: white;
+            padding: 2px;
+            border-radius: 4px;
+        }
+
+        .card-actions-row {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.25rem;
+            border-top: 1px solid var(--border);
+            padding-top: 0.75rem;
+            margin-top: 0.5rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            header {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .search-bar {
+                margin: 0;
+            }
+
+            .filter-row {
+                gap: 0.5rem;
+            }
+
+            .filter-row:nth-child(2) {
+                justify-content: space-between;
+            }
+
+            .filter-chip {
+                flex: 1;
+                justify-content: center;
+                padding: 0.4rem 0.25rem;
+                font-size: 0.7rem;
+            }
+
+            .filter-bar select {
+                flex: 1;
+                font-size: 0.8rem;
+                padding: 0.4rem 0.5rem;
+            }
+
+            .items-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .list-item {
+                gap: 0.75rem;
+                padding: 0.75rem;
+                display: grid;
+                grid-template-columns: 60px 1fr;
+                grid-template-areas:
+                    "thumb info"
+                    "stats actions";
+                align-items: center;
+            }
+
+            .list-thumb {
+                grid-area: thumb;
+            }
+
+            .list-info {
+                grid-area: info;
+            }
+
+            .list-stats {
+                grid-area: stats;
+                font-size: 0.9rem;
+                padding-top: 0.5rem;
+                border-top: 1px dashed var(--border);
+            }
+
+            .list-actions {
+                grid-area: actions;
+                justify-content: flex-end;
+                padding-top: 0.5rem;
+                border-top: 1px dashed var(--border);
+            }
+
+            .view-carousel::-webkit-scrollbar {
+                display: none;
+            }
+
+            .view-carousel {
+                -ms-overflow-style: none;
+                scrollbar-width: none;
+            }
+        }
+
+        /* Mobile Menu Reorganization */
+        @media (max-width: 600px) {
+            header {
+                flex-wrap: wrap;
+            }
+
+            .actions-top {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+                margin-top: 0.5rem;
+                padding-top: 0.75rem;
+                border-top: 1px solid var(--border);
+            }
+
+            .actions-top #themeToggle {
+                position: absolute;
+                top: 1rem;
+                right: 1rem;
+                order: -1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <header>
+            <div class="brand">
+                <h1>Desapego Pro v1</h1>
+            </div>
+            <div class="search-bar">
+                <i data-lucide="search" size="18"></i>
+                <input type="text" id="全局搜索" placeholder="Buscar itens...">
+                <button class="btn-ghost icon-btn" id="scanBtn">
+                    <i data-lucide="camera" size="18"></i>
+                </button>
+            </div>
+            <div class="actions-top">
+                <button class="btn-ghost icon-btn" id="themeToggle">
+                    <i data-lucide="moon" id="themeIcon"></i>
+                </button>
+            </div>
+        </header>
+
+        <main id="mainContent">
+            <div class="filter-bar">
+                <div class="filter-row">
+                    <select id="sortSelect">
+                        <option value="recent">Mais Recentes</option>
+                        <option value="oldest">Mais Antigos</option>
+                        <option value="code">Código</option>
+                        <option value="price_asc">Preço (Menor)</option>
+                        <option value="price_desc">Preço (Maior)</option>
+                    </select>
+                    <select id="statusFilter">
+                        <option value="all">Todos os Status</option>
+                        <option value="disponível">Disponível</option>
+                        <option value="vendido">Vendido</option>
+                        <option value="doado">Doado</option>
+                        <option value="descartado">Descartado</option>
+                    </select>
+                </div>
+                <div class="filter-row">
+                    <div class="filter-chip" id="filterPinned">
+                        <i data-lucide="pin" size="14"></i> Fixados
+                    </div>
+                    <div class="filter-chip" id="filterImage">
+                        <i data-lucide="image" size="14"></i> Com Foto
+                    </div>
+                    <div class="filter-chip" id="filterDamage">
+                        <i data-lucide="alert-triangle" size="14"></i> Com Avaria
+                    </div>
+                </div>
+                <div id="tagFilterRow" class="filter-row"
+                    style="overflow-x: auto; padding-bottom: 0.5rem; display: flex; gap: 0.5rem; flex-wrap: nowrap; -webkit-overflow-scrolling: touch;">
+                    <!-- Tag Chips Injected Here -->
+                </div>
+                <span id="itemsCount" style="font-size: 0.8rem; color: var(--text-muted); text-align: right;"></span>
+            </div>
+            <div id="itemsContainer" class="items-grid"></div>
+        </main>
+
+        <button class="btn-fab" id="addItemBtn" title="Novo Item">
+            <i data-lucide="plus"></i>
+        </button>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal-overlay" id="itemModalOverlay">
+        <div class="modal" id="itemModal">
+            <!-- Modal content -->
+        </div>
+    </div>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+
+        // Database Configuration
+        const DB_NAME = 'DesapegoProDB';
+        const DB_VERSION = 3; // Incremented for Tags
+        let db;
+
+        const initDB = () => {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('items')) {
+                        const store = db.createObjectStore('items', { keyPath: 'id', autoIncrement: true });
+                        store.createIndex('code', 'code', { unique: true });
+                        store.createIndex('createdAt', 'createdAt');
+                        store.createIndex('pinned', 'pinned');
+                    } else {
+                        const store = e.currentTarget.transaction.objectStore('items');
+                        if (!store.indexNames.contains('pinned')) {
+                            store.createIndex('pinned', 'pinned');
+                        }
+                    }
+                    if (!db.objectStoreNames.contains('collections')) {
+                        db.createObjectStore('collections', { keyPath: 'id', autoIncrement: true });
+                    }
+                    if (!db.objectStoreNames.contains('settings')) {
+                        db.createObjectStore('settings', { keyPath: 'key' });
+                    }
+                    // Version 3: Tags
+                    if (!db.objectStoreNames.contains('tags')) {
+                        const tagStore = db.createObjectStore('tags', { keyPath: 'id' });
+                        tagStore.createIndex('name', 'name', { unique: false });
+                        tagStore.createIndex('type', 'type', { unique: false });
+                        tagStore.createIndex('parentId', 'parentId', { unique: false });
+                    }
+                    if (db.objectStoreNames.contains('items')) {
+                        const itemStore = e.currentTarget.transaction.objectStore('items');
+                        if (!itemStore.indexNames.contains('tags')) {
+                            itemStore.createIndex('tags', 'tags', { unique: false, multiEntry: true });
+                        }
+                    }
+                };
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    resolve(db);
+                };
+                request.onerror = (e) => reject(e.target.error);
+            });
+        };
+
+        // Global Settings Management
+        const getSetting = async (key, defaultVal) => {
+            const transaction = db.transaction(['settings'], 'readonly');
+            const store = transaction.objectStore('settings');
+            const request = store.get(key);
+            return new Promise(resolve => {
+                request.onsuccess = () => resolve(request.result?.value ?? defaultVal);
+            });
+        };
+
+        const saveSetting = async (key, value) => {
+            const transaction = db.transaction(['settings'], 'readwrite');
+            const store = transaction.objectStore('settings');
+            store.put({ key, value });
+        };
+
+        // Theme Management
+        const initTheme = () => {
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            updateThemeIcon(savedTheme);
+        };
+
+        const toggleTheme = () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+            updateThemeIcon(next);
+        };
+
+        const updateThemeIcon = (theme) => {
+            const icon = document.getElementById('themeIcon');
+            icon.setAttribute('data-lucide', theme === 'light' ? 'moon' : 'sun');
+            lucide.createIcons();
+        };
+
+        document.getElementById('themeToggle').onclick = toggleTheme;
+
+        // State Management
+        let currentItems = [];
+        // Global Tag Cache
+        let cachedTags = [];
+        let editingItemId = null;
+        let selectedLanguage = localStorage.getItem('lang') || 'pt';
+
+        const TRANSLATIONS = {
+            pt: {
+                title: 'Desapego Pro v1',
+                searchPlaceholder: 'Buscar itens...',
+                newItem: 'Novo Item',
+                code: 'Código',
+                description: 'Descrição',
+                details: 'Detalhes',
+                quantity: 'Quantidade',
+                newPrice: 'Preço Novo',
+                desapegoPrice: 'Preço Desapego',
+                damageCount: 'Qtd. de Avarias',
+                save: 'Salvar',
+                cancel: 'Cancelar',
+                edit: 'Editar',
+                delete: 'Excluir',
+                confirmDelete: 'Tem certeza que deseja excluir este item?',
+                successSave: 'Item salvo com sucesso!',
+                autoCode: 'Gerar automático',
+                prefix: 'Prefixo',
+                startAt: 'Iniciar em',
+                digits: 'Dígitos',
+                attachments: 'Anexos',
+                selectFiles: 'Selecionar Arquivos',
+                summary: 'Resumo',
+                totalSaved: 'Economia Total',
+                totalDesapego: 'Total Desapego',
+                totalNew: 'Total Novo na Loja',
+                itemsFound: 'itens encontrados',
+                list: 'Lista',
+                grid: 'Grade',
+                language: 'Idioma',
+                available: 'Disponível',
+                sold: 'Vendido',
+                donated: 'Doado',
+                discarded: 'Descartado',
+                activeItems: 'Itens Ativos',
+                damageCheck: 'Avaria(s)/Dano(s)',
+                selectAll: 'Selecionar Tudo'
+            },
+            en: {
+                title: 'Desapego Pro v1',
+                searchPlaceholder: 'Search items...',
+                newItem: 'New Item',
+                code: 'Code',
+                description: 'Description',
+                details: 'Details',
+                quantity: 'Quantity',
+                newPrice: 'New Box Price',
+                desapegoPrice: 'Sale Price',
+                damageCount: 'Damage Count',
+                save: 'Save',
+                cancel: 'Cancel',
+                edit: 'Edit',
+                delete: 'Delete',
+                confirmDelete: 'Are you sure you want to delete this item?',
+                successSave: 'Item saved successfully!',
+                autoCode: 'Auto Generate',
+                prefix: 'Prefix',
+                startAt: 'Start at',
+                digits: 'Digits',
+                attachments: 'Attachments',
+                selectFiles: 'Select Files',
+                summary: 'Summary',
+                totalSaved: 'Total Savings',
+                totalDesapego: 'Total Sale',
+                totalNew: 'Total New Value',
+                itemsFound: 'items found',
+                list: 'List',
+                grid: 'Grid',
+                language: 'Language',
+                available: 'Available',
+                sold: 'Sold',
+                donated: 'Donated',
+                Discarded: 'Discarded',
+                activeItems: 'Active Items',
+                damageCheck: 'Damage Checklist',
+                selectAll: 'Select All'
+            }
+        };
+
+        const t = (key) => TRANSLATIONS[selectedLanguage][key] || key;
+
+        // UI Updates
+        const updateUIStrings = () => {
+            document.title = t('title');
+            document.querySelector('.brand h1').textContent = t('title');
+            document.getElementById('全局搜索').placeholder = t('searchPlaceholder');
+            // ... more translations as needed
+        };
+
+        // Modal Controls
+        const openModal = async (itemId = null) => {
+            editingItemId = itemId;
+            const item = itemId ? currentItems.find(i => i.id === itemId) : null;
+            const tags = await getAllTags(); // Fetch tags
+
+            const modal = document.getElementById('itemModal');
+            modal.innerHTML = renderItemForm(item, tags);
+            document.getElementById('itemModalOverlay').style.display = 'flex';
+
+            // Populate media previews if editing
+            if (item) {
+                const previewContainer = document.getElementById('mediaPreview');
+                if (item.images) {
+                    item.images.forEach(imgData => {
+                        renderMediaPreview({ data: imgData, type: 'image/jpeg', name: 'image', size: imgData.length * 0.75 }, previewContainer);
+                    });
+                }
+                if (item.attachments) {
+                    item.attachments.forEach(att => {
+                        renderMediaPreview(att, previewContainer);
+                    });
+                }
+            }
+
+            lucide.createIcons();
+            initFormListeners();
+
+            // Tag Adder Logic
+            const tagBtn = document.getElementById('addTagBtn');
+            if (tagBtn) {
+                tagBtn.onclick = () => {
+                    const select = document.getElementById('tagAdder');
+                    const tagId = select.value;
+                    if (!tagId) return;
+
+                    const option = select.options[select.selectedIndex];
+                    const color = option.dataset.color;
+                    const name = option.text;
+
+                    const container = document.getElementById('itemTagsContainer');
+
+                    // Check if already exists
+                    if (container.querySelector(`input[value="${tagId}"]`)) return;
+
+                    const span = document.createElement('span');
+                    span.className = 'tag-pill';
+                    span.style.background = color;
+                    span.innerHTML = `${name} <button type="button" class="tag-remove" onclick="this.parentElement.remove()">×</button><input type="hidden" name="item_tags" value="${tagId}">`;
+                    container.appendChild(span);
+                    select.value = "";
+                }
+            }
+        };
+
+        const closeModal = () => {
+            document.getElementById('itemModalOverlay').style.display = 'none';
+            editingItemId = null;
+        };
+
+        document.getElementById('itemModalOverlay').onclick = (e) => {
+            if (e.target.id === 'itemModalOverlay') closeModal();
+        };
+
+        // Form Templates
+        const renderItemForm = (item, tags = []) => `
+            <div class="modal-content" style="padding: 2rem;">
+                <h2 style="margin-bottom: 1.5rem;">${item ? t('edit') : t('newItem')}</h2>
+                <form id="itemForm" class="grid-form">
+                    <div class="form-group">
+                        <label>${t('code')} *</label>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="text" id="fm_code" value="${item?.code || ''}" required placeholder="Ex: DSP-001">
+                            <button type="button" class="btn-ghost icon-btn" id="genBarcode">
+                                <i data-lucide="barcode" size="18"></i>
+                            </button>
+                            <button type="button" class="btn-ghost icon-btn" id="genQR">
+                                <i data-lucide="qr-code" size="18"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>${t('description')} *</label>
+                        <input type="text" id="fm_desc" value="${item?.description || ''}" required>
+                    </div>
+                     <div class="form-group">
+                        <label>Tags / Categorias</label>
+                        <div class="tag-selector-container" id="itemTagsContainer" style="display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem; min-height:30px;">
+                            ${(item?.tags || []).map(tagId => {
+            const tag = tags.find(t => t.id === tagId);
+            return tag ? `<span class="tag-pill" style="background: ${tag.color}">${tag.name} <button type="button" class="tag-remove" onclick="this.parentElement.remove()">×</button><input type="hidden" name="item_tags" value="${tag.id}"></span>` : '';
+        }).join('')}
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <select id="tagAdder" style="flex:1">
+                                <option value="">Adicionar Tag...</option>
+                                ${tags.map(t => `<option value="${t.id}" data-color="${t.color || '#6366f1'}">${t.name}</option>`).join('')}
+                            </select>
+                            <button type="button" class="btn-ghost" id="addTagBtn">+</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>${t('details')}</label>
+                        <textarea id="fm_details" rows="3">${item?.details || ''}</textarea>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="fm_status">
+                                <option value="disponível" ${item?.status === 'disponível' || !item?.status ? 'selected' : ''}>${t('available')}</option>
+                                <option value="vendido" ${item?.status === 'vendido' ? 'selected' : ''}>${t('sold')}</option>
+                                <option value="doado" ${item?.status === 'doado' ? 'selected' : ''}>${t('donated')}</option>
+                                <option value="descartado" ${item?.status === 'descartado' ? 'selected' : ''}>${t('discarded')}</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>${t('quantity')}</label>
+                            <input type="number" id="fm_qty" value="${item?.quantity || 1}" min="1">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>${t('damageCheck')}</label>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="fm_hasDamage" ${item?.hasDamage || item?.damageCount > 0 ? 'checked' : ''} style="width: auto; margin: 0;">
+                            <span style="font-size: 0.85rem; color: var(--text-muted)">Possui avaria/dano</span>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label>${t('newPrice')}</label>
+                            <input type="number" step="0.01" id="fm_newVal" value="${item?.newVal || 0}">
+                        </div>
+                        <div class="form-group">
+                            <label>${t('desapegoPrice')}</label>
+                            <input type="number" step="0.01" id="fm_desapegoVal" value="${item?.desapegoVal || 0}">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>${t('attachments')}</label>
+                        <div class="media-upload-zone" id="dropZone">
+                            <input type="file" id="fm_files" multiple accept="image/*,.pdf,.doc,.docx" hidden>
+                            <input type="file" id="fm_camera" capture="environment" accept="image/*" hidden>
+                            <div style="display: flex; gap: 2rem; justify-content: center;">
+                                <div class="upload-placeholder" onclick="document.getElementById('fm_files').click()">
+                                    <i data-lucide="upload-cloud" size="32"></i>
+                                    <p>${t('selectFiles')}</p>
+                                </div>
+                                <div class="upload-placeholder" onclick="document.getElementById('fm_camera').click()">
+                                    <i data-lucide="camera" size="32"></i>
+                                    <p>Tirar Foto</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="mediaPreview" class="media-preview-container"></div>
+                    </div>
+
+                    <div class="modal-footer" style="margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem;">
+                        <button type="button" class="btn-ghost" onclick="closeModal()">${t('cancel')}</button>
+                        <button type="submit" class="btn-primary">${t('save')}</button>
+                    </div>
+                </form>
+            </div>
+        `;
+
+        // Image Processing Logic
+        const compressImage = (file) => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.src = e.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        let width = img.width;
+                        let height = img.height;
+
+                        const MAX_SIZE = 1600; // Increased for better quality
+                        if (width > height) {
+                            if (width > MAX_SIZE) {
+                                height *= MAX_SIZE / width;
+                                width = MAX_SIZE;
+                            }
+                        } else {
+                            if (height > MAX_SIZE) {
+                                width *= MAX_SIZE / height;
+                                height = MAX_SIZE;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        ctx.drawImage(img, 0, 0, width, height);
+                        // Higher quality for better photos
+                        resolve(canvas.toDataURL('image/jpeg', 0.85));
+                    };
+                };
+            });
+        };
+
+        const handleFileSelect = async (e) => {
+            const files = Array.from(e.target.files);
+            const previewContainer = document.getElementById('mediaPreview');
+
+            for (const file of files) {
+                const isImage = file.type.startsWith('image/');
+                const data = isImage ? await compressImage(file) : await readFileAsBase64(file);
+
+                const item = {
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    data: data
+                };
+
+                renderMediaPreview(item, previewContainer);
+            }
+        };
+
+        const readFileAsBase64 = (file) => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
+        };
+
+        // Media Manager Improvements
+        const renderMediaPreview = (item, container) => {
+            const div = document.createElement('div');
+            div.className = 'media-item';
+            div.dataset.name = item.name;
+            div.dataset.data = item.data;
+            div.dataset.type = item.type;
+            div.dataset.size = item.size;
+
+            const isImage = item.type.startsWith('image/');
+
+            div.innerHTML = `
+                ${isImage
+                    ? `<img src="${item.data}" onclick="handleMediaClick(this)">`
+                    : `<div class="file-icon" onclick="downloadAttachment('${item.data}', '${item.name}')"><i data-lucide="file"></i><span>${item.name}</span></div>`}
+                <span class="file-size">${(item.size / 1024).toFixed(1)} KB</span>
+                <div class="selection-badge"></div>
+                <div class="media-actions">
+                    ${isImage ? `<button type="button" class="media-btn cover-btn" onclick="setAsCover(this)" title="Definir como Capa"><i data-lucide="star" size="12"></i></button>` : ''}
+                    <button type="button" class="media-btn rotate-btn" onclick="rotateImage(this, 90)"><i data-lucide="rotate-cw" size="12"></i></button>
+                    <button type="button" class="media-btn delete-btn" onclick="this.closest('.media-item').remove()">×</button>
+                </div>
+            `;
+            container.appendChild(div);
+            lucide.createIcons();
+        };
+
+        let reorderSelection = [];
+        const handleMediaClick = (img) => {
+            const item = img.closest('.media-item');
+            const container = item.parentNode;
+
+            if (reorderSelection.includes(item)) {
+                reorderSelection = reorderSelection.filter(i => i !== item);
+                item.classList.remove('reorder-selected');
+            } else {
+                reorderSelection.push(item);
+                item.classList.add('reorder-selected');
+            }
+
+            updateReorderBadges();
+
+            // If all items are selected or user double clicks, we could apply. 
+            // For now, let's add a small delay or a button. 
+            // Actually, let's just apply immediately if they want to move one by one or in sequence.
+            if (reorderSelection.length > 0) {
+                // Clear any existing apply button
+                const oldBtn = document.getElementById('applyReorderBtn');
+                if (oldBtn) oldBtn.remove();
+
+                const btn = document.createElement('button');
+                btn.id = 'applyReorderBtn';
+                btn.className = 'btn-primary';
+                btn.style.position = 'absolute';
+                btn.style.bottom = '10px';
+                btn.style.right = '10px';
+                btn.textContent = 'Aplicar Nova Ordem';
+                btn.onclick = (e) => {
+                    e.preventDefault();
+                    applyNewOrder(container);
+                };
+                container.style.position = 'relative';
+                container.appendChild(btn);
+            }
+        };
+
+        const updateReorderBadges = () => {
+            document.querySelectorAll('.media-item').forEach(item => {
+                const badge = item.querySelector('.selection-badge');
+                const idx = reorderSelection.indexOf(item);
+                if (idx !== -1) {
+                    badge.textContent = idx + 1;
+                    badge.style.display = 'flex';
+                } else {
+                    badge.style.display = 'none';
+                }
+            });
+        };
+
+        const applyNewOrder = (container) => {
+            reorderSelection.forEach(item => {
+                container.appendChild(item);
+                item.classList.remove('reorder-selected');
+            });
+            reorderSelection = [];
+            updateReorderBadges();
+            const btn = document.getElementById('applyReorderBtn');
+            if (btn) btn.remove();
+        };
+
+        const setAsCover = (btn) => {
+            const item = btn.closest('.media-item');
+            const container = item.parentNode;
+            container.prepend(item);
+            // Visual feedback
+            item.style.animation = 'pulse 0.5s ease-in-out';
+            setTimeout(() => item.style.animation = '', 500);
+        };
+
+        const zoomMedia = (src) => {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.style.display = 'flex';
+            modal.onclick = () => modal.remove();
+            modal.innerHTML = `<img src="${src}" style="max-width: 90%; max-height: 90%; object-fit: contain; box-shadow: var(--shadow);">`;
+            document.body.appendChild(modal);
+        };
+
+        const rotateImage = (btn, degrees) => {
+            const img = btn.closest('.media-item').querySelector('img');
+            if (!img) return;
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const image = new Image();
+            image.src = img.src;
+            image.onload = () => {
+                canvas.width = image.height;
+                canvas.height = image.width;
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate(degrees * Math.PI / 180);
+                ctx.drawImage(image, -image.width / 2, -image.height / 2);
+                img.src = canvas.toDataURL('image/jpeg', 0.8);
+            };
+        };
+
+        const setupDragAndDrop = (container) => {
+            let draggedItem = null;
+            container.querySelectorAll('.media-item').forEach(item => {
+                item.ondragstart = () => { draggedItem = item; setTimeout(() => item.style.display = 'none', 0); };
+                item.ondragend = () => { draggedItem = null; item.style.display = 'block'; };
+                item.ondragover = (e) => e.preventDefault();
+                item.ondragenter = (e) => e.preventDefault();
+                item.ondrop = (e) => {
+                    e.preventDefault();
+                    if (draggedItem !== item) {
+                        const children = Array.from(container.children);
+                        const draggedIdx = children.indexOf(draggedItem);
+                        const targetIdx = children.indexOf(item);
+                        if (draggedIdx < targetIdx) {
+                            item.after(draggedItem);
+                        } else {
+                            item.before(draggedItem);
+                        }
+                    }
+                };
+            });
+        };
+
+        const downloadAttachment = (data, name) => {
+            const link = document.createElement('a');
+            link.href = data;
+            link.download = name;
+            link.click();
+        };
+
+        // CRUD Operations
+        const saveItem = async (e) => {
+            e.preventDefault();
+            const mediaItems = Array.from(document.querySelectorAll('.media-item')).map(div => {
+                return {
+                    data: div.dataset.data,
+                    type: div.dataset.type,
+                    name: div.dataset.name || 'file'
+                };
+            });
+
+            const itemData = {
+                code: document.getElementById('fm_code').value.trim(),
+                description: document.getElementById('fm_desc').value.trim(),
+                details: document.getElementById('fm_details').value.trim(),
+                quantity: parseInt(document.getElementById('fm_qty').value) || 0,
+                status: document.getElementById('fm_status').value,
+                hasDamage: document.getElementById('fm_hasDamage').checked,
+                newVal: parseFloat(document.getElementById('fm_newVal').value) || 0,
+                desapegoVal: parseFloat(document.getElementById('fm_desapegoVal').value) || 0,
+                images: mediaItems.filter(m => m.type.startsWith('image/')).map(m => m.data),
+                attachments: mediaItems.filter(m => !m.type.startsWith('image/')),
+                tags: Array.from(document.querySelectorAll('input[name="item_tags"]')).map(input => input.value),
+                updatedAt: new Date().toISOString()
+            };
+
+            if (editingItemId) {
+                itemData.id = editingItemId;
+            } else {
+                itemData.createdAt = new Date().toISOString();
+            }
+
+            const transaction = db.transaction(['items'], 'readwrite');
+            const store = transaction.objectStore('items');
+
+            try {
+                if (editingItemId) {
+                    await store.put(itemData);
+                } else {
+                    await store.add(itemData);
+                }
+                confetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+                closeModal();
+                loadItems();
+            } catch (err) {
+                alert('Erro ao salvar item: ' + err.message);
+            }
+        };
+
+        const loadItems = async () => {
+            const transaction = db.transaction(['items'], 'readonly');
+            const store = transaction.objectStore('items');
+            const request = store.getAll();
+
+            request.onsuccess = () => {
+                currentItems = request.result;
+                renderItems();
+            };
+        };
+
+        // Search and Filtering
+        let searchScanner;
+        let currentFilters = {
+            search: '',
+            status: 'all',
+            onlyPinned: false,
+            hasImage: false,
+            hasDamage: false,
+            sortBy: 'recent',
+            tags: []
+        };
+
+        const handleSearch = (e) => {
+            currentFilters.search = e.target.value.toLowerCase();
+            renderItems();
+        };
+
+        const renderFilteredItems = (items) => {
+            const container = document.getElementById('itemsContainer');
+            container.innerHTML = items.map(item => renderItemCard(item)).join('');
+            lucide.createIcons();
+        };
+
+        document.getElementById('全局搜索').oninput = handleSearch;
+
+        // Bulk Actions & Deletion Logic
+        const selectAllVisible = () => {
+            // Find all items currently displayed based on filters
+            const filteredIds = currentItems.filter(item => {
+                const matchesSearch = !currentFilters.search ||
+                    item.code.toLowerCase().includes(currentFilters.search) ||
+                    item.description.toLowerCase().includes(currentFilters.search) ||
+                    item.details.toLowerCase().includes(currentFilters.search);
+
+                const matchesPinned = !currentFilters.onlyPinned || item.pinned;
+                const matchesImage = !currentFilters.hasImage || (item.images && item.images.length > 0);
+                const matchesDamage = !currentFilters.hasDamage || (item.hasDamage || item.damageCount > 0);
+
+                return matchesSearch && matchesPinned && matchesImage && matchesDamage;
+            }).map(i => i.id);
+
+            // Toggle logic: if all visible are already selected, deselect them. Otherwise, select all visible.
+            const allVisibleSelected = filteredIds.every(id => selectedItems.has(id));
+            if (allVisibleSelected) {
+                filteredIds.forEach(id => selectedItems.delete(id));
+            } else {
+                filteredIds.forEach(id => selectedItems.add(id));
+            }
+            updateSelectionUI();
+            renderItems();
+        };
+
+        const deleteSelectedItems = async () => {
+            if (selectedItems.size === 0) return;
+            if (!confirm(`Excluir ${selectedItems.size} itens selecionados?`)) return;
+
+            const transaction = db.transaction(['items'], 'readwrite');
+            const store = transaction.objectStore('items');
+
+            for (const id of selectedItems) {
+                await store.delete(id);
+            }
+
+            transaction.oncomplete = () => {
+                selectedItems.clear();
+                isSelectionMode = false;
+                updateSelectionUI();
+                loadItems();
+                alert('Itens excluídos com sucesso!');
+            };
+        };
+
+        const deleteItem = async (id, event) => {
+            if (event) event.stopPropagation();
+            if (!confirm(t('confirmDelete'))) return;
+
+            const transaction = db.transaction(['items'], 'readwrite');
+            await transaction.objectStore('items').delete(id);
+
+            transaction.oncomplete = () => {
+                loadItems();
+            };
+        };
+
+        // Camera Scanning - Versão Melhorada
+        const startScanner = async () => {
+            let scanMode = 'qr'; // 'qr' ou 'barcode'
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.style.display = 'flex';
+            modal.id = 'scannerModal';
+            modal.innerHTML = `
+                <div class="modal" style="max-width: 500px; padding: 1rem;">
+                    <div style="display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 1rem;">
+                        <button class="btn-primary" id="toggleScanModeBtn" style="flex: 1;">
+                            <i data-lucide="scan-line"></i> <span>Alternar para Código de Barras</span>
+                        </button>
+                    </div>
+                    <div id="reader" style="width: 100%; position: relative;">
+                        <!-- Linha de leitura vertical para barcode -->
+                        <div id="scanLine" style="
+                            display: none;
+                            position: absolute;
+                            top: 50%;
+                            left: 50%;
+                            transform: translate(-50%, -50%);
+                            width: 3px;
+                            height: 60%;
+                            background: linear-gradient(to bottom, transparent, #10b981, transparent);
+                            box-shadow: 0 0 20px #10b981;
+                            z-index: 1000;
+                            animation: scanPulse 1.5s infinite;
+                        "></div>
+                    </div>
+                    <button class="btn-ghost" style="margin-top: 1rem; width: 100%;" onclick="stopScanner()">
+                        ${t('cancel')}
+                    </button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            lucide.createIcons();
+
+            // Adicionar animação para a linha de scan
+            if (!document.getElementById('scanLineStyle')) {
+                const style = document.createElement('style');
+                style.id = 'scanLineStyle';
+                style.textContent = `
+                    @keyframes scanPulse {
+                        0%, 100% { opacity: 0.3; }
+                        50% { opacity: 1; }
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+
+            searchScanner = new Html5Qrcode("reader");
+
+            const startScan = async (mode) => {
+                scanMode = mode;
+                const scanLine = document.getElementById('scanLine');
+                const toggleBtn = document.getElementById('toggleScanModeBtn');
+
+                // Atualizar UI baseado no modo
+                if (mode === 'barcode') {
+                    scanLine.style.display = 'block';
+                    toggleBtn.innerHTML = '<i data-lucide="qr-code"></i> <span>Alternar para QR Code</span>';
+                } else {
+                    scanLine.style.display = 'none';
+                    toggleBtn.innerHTML = '<i data-lucide="scan-line"></i> <span>Alternar para Código de Barras</span>';
+                }
+                lucide.createIcons();
+
+                // Parar scan anterior se existir
+                if (searchScanner.isScanning) {
+                    await searchScanner.stop();
+                }
+
+                // Configuração baseada no modo
+                const config = {
+                    fps: 10,
+                    qrbox: mode === 'qr'
+                        ? { width: 250, height: 250 }  // Quadrado para QR
+                        : { width: 250, height: 100 },  // Retângulo horizontal para barcode
+                    formatsToSupport: mode === 'qr'
+                        ? [Html5QrcodeSupportedFormats.QR_CODE]
+                        : [
+                            Html5QrcodeSupportedFormats.CODE_128,
+                            Html5QrcodeSupportedFormats.CODE_39,
+                            Html5QrcodeSupportedFormats.EAN_13,
+                            Html5QrcodeSupportedFormats.EAN_8,
+                            Html5QrcodeSupportedFormats.UPC_A,
+                            Html5QrcodeSupportedFormats.UPC_E
+                        ]
+                };
+
+                try {
+                    await searchScanner.start(
+                        { facingMode: "environment" },
+                        config,
+                        (decodedText) => {
+                            // Sucesso na leitura
+                            document.getElementById('全局搜索').value = decodedText;
+                            handleSearch({ target: { value: decodedText } });
+
+                            // Feedback visual
+                            confetti({
+                                particleCount: 50,
+                                spread: 60,
+                                origin: { y: 0.7 }
+                            });
+
+                            stopScanner();
+                        },
+                        (errorMessage) => {
+                            // Erro na leitura (ignorar - muito verboso)
+                        }
+                    );
+                } catch (err) {
+                    alert("Erro ao acessar câmera: " + err);
+                    stopScanner();
+                }
+            };
+
+            // Iniciar com modo QR
+            await startScan('qr');
+
+            // Botão para alternar modo
+            document.getElementById('toggleScanModeBtn').onclick = async () => {
+                const newMode = scanMode === 'qr' ? 'barcode' : 'qr';
+                await startScan(newMode);
+            };
+        };
+
+        const stopScanner = async () => {
+            if (searchScanner && searchScanner.isScanning) {
+                await searchScanner.stop();
+            }
+            const modal = document.getElementById('scannerModal');
+            if (modal) modal.remove();
+        };
+
+
+        document.getElementById('scanBtn').onclick = startScanner;
+
+        // QR and Barcode Generation Logic
+        const generateCode = (type) => {
+            const code = document.getElementById('fm_code').value;
+            if (!code) return alert('Insira um código primeiro!');
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.style.display = 'flex';
+            modal.id = 'genModal';
+            modal.innerHTML = `
+                <div class="modal" style="max-width: 400px; padding: 2rem; text-align: center;">
+                    <h3>${type === 'QR' ? 'QR Code' : 'Código de Barras'}</h3>
+                    <div id="codeResult" style="margin: 2rem 0; display: flex; justify-content: center; background: white; padding: 1rem; border-radius: 8px;">
+                        ${type === 'QR' ? '<canvas id="qrcode"></canvas>' : '<svg id="barcode"></svg>'}
+                    </div>
+                    <p style="margin-bottom: 2rem; font-weight: bold;">${code}</p>
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn-ghost" style="flex: 1" onclick="document.getElementById('genModal').remove()">${t('cancel')}</button>
+                        <button class="btn-primary" style="flex: 1" id="downloadCode">
+                            <i data-lucide="download"></i> Salvar
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            lucide.createIcons();
+
+            if (type === 'QR') {
+                QRCode.toCanvas(document.getElementById("qrcode"), code, { width: 200, margin: 2 }, (err) => {
+                    if (err) console.error(err);
+                });
+            } else {
+                JsBarcode("#barcode", code, {
+                    format: "CODE128",
+                    width: 2,
+                    height: 80,
+                    displayValue: false
+                });
+            }
+
+            document.getElementById('downloadCode').onclick = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+
+                if (type === 'QR') {
+                    const qrCanvas = document.getElementById('qrcode');
+                    canvas.width = qrCanvas.width + 40;
+                    canvas.height = qrCanvas.height + 80;
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(qrCanvas, 20, 20);
+                    ctx.fillStyle = 'black';
+                    ctx.font = 'bold 20px Inter';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(code, canvas.width / 2, canvas.height - 20);
+                    triggerDownload(canvas, code);
+                } else {
+                    const svg = document.getElementById('barcode');
+                    const xml = new XMLSerializer().serializeToString(svg);
+                    const svg64 = btoa(xml);
+                    const image64 = 'data:image/svg+xml;base64,' + svg64;
+                    const img = new Image();
+                    img.src = image64;
+                    img.onload = () => {
+                        canvas.width = img.width + 40;
+                        canvas.height = img.height + 60;
+                        ctx.fillStyle = 'white';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.drawImage(img, 20, 10);
+                        ctx.fillStyle = 'black';
+                        ctx.font = 'bold 16px Inter';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(code, canvas.width / 2, canvas.height - 15);
+                        triggerDownload(canvas, code);
+                    };
+                }
+            };
+        };
+
+        const triggerDownload = (canvas, code) => {
+            const link = document.createElement('a');
+            link.download = `${code}.jpg`;
+            link.href = canvas.toDataURL('image/jpeg', 0.9);
+            link.click();
+        };
+
+        // View Toggle Logic
+        let currentView = 'grid';
+
+        const toggleView = () => {
+            currentView = currentView === 'grid' ? 'list' : 'grid';
+            document.getElementById('itemsContainer').className = currentView === 'grid' ? 'items-grid' : 'items-list';
+            renderItems();
+        };
+
+        // Multi-selection
+        let selectedItems = new Set();
+        let isSelectionMode = false;
+
+        const toggleSelectionMode = () => {
+            isSelectionMode = !isSelectionMode;
+            if (!isSelectionMode) selectedItems.clear();
+            renderItems();
+            updateSelectionUI();
+        };
+
+        const toggleItemSelection = (itemId, event) => {
+            event.stopPropagation();
+            if (selectedItems.has(itemId)) {
+                selectedItems.delete(itemId);
+            } else {
+                selectedItems.add(itemId);
+            }
+            updateSelectionUI();
+            renderItems();
+        };
+
+        const updateSelectionUI = () => {
+            const bar = document.getElementById('selectionBar');
+            if (!bar) return;
+            if (isSelectionMode) {
+                bar.style.display = 'flex';
+                bar.querySelector('.count').textContent = `${selectedItems.size} selecionados`;
+                document.getElementById('selectionBtn').classList.add('active');
+            } else {
+                bar.style.display = 'none';
+                document.getElementById('selectionBtn').classList.remove('active');
+            }
+        };
+
+        // WhatsApp Sharing
+        const shareWhatsApp = (itemId) => {
+            const item = currentItems.find(i => i.id === itemId);
+            if (!item) return;
+
+            const totalDesapego = (item.quantity * item.desapegoVal).toFixed(2);
+            const text = `*${item.description}*\nCódigo: ${item.code}\nQuantidade: ${item.quantity}\nValor: R$ ${totalDesapego}\n\nEnviado via Desapego Pro`;
+            const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+            window.open(url, '_blank');
+        };
+
+        // Advanced Export Logic
+        const openExportModal = (format) => {
+            const itemsToExport = selectedItems.size > 0
+                ? Array.from(selectedItems).map(id => currentItems.find(i => i.id === id))
+                : currentItems;
+
+            if (itemsToExport.length === 0) return alert('Nenhum item para exportar!');
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.style.display = 'flex';
+            modal.id = 'exportModal';
+            modal.innerHTML = `
+                <div class="modal" style="max-width: 500px; padding: 2rem;">
+                    <h3>Configurar Exportação ${format.toUpperCase()}</h3>
+                    <div style="margin: 1.5rem 0;">
+                        <label style="font-weight: bold; display: block; margin-bottom: 0.5rem;">Campos a incluir:</label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;" id="exportFields">
+                            <label><input type="checkbox" checked data-field="code"> Código</label>
+                            <label><input type="checkbox" checked data-field="description"> Descrição</label>
+                            <label><input type="checkbox" checked data-field="quantity"> Quantidade</label>
+                            <label><input type="checkbox" checked data-field="desapegoVal"> Preço Desapego</label>
+                            <label><input type="checkbox" checked data-field="newVal"> Preço Novo</label>
+                            <label><input type="checkbox" data-field="details"> Detalhes</label>
+                        </div>
+                    </div>
+                    ${format === 'pdf' ? `
+                        <div class="form-group">
+                            <label>Título do Documento</label>
+                            <input type="text" id="pdf_title" value="Relatório de Desapego">
+                        </div>
+                        <div class="form-group">
+                            <label>Subtítulo</label>
+                            <input type="text" id="pdf_subtitle" value="${new Date().toLocaleDateString()}">
+                        </div>
+                    ` : ''}
+                    ${format === 'json' ? `
+                        <div style="background: var(--bg); padding: 1rem; border-radius: 8px; margin-bottom: 1rem; border: 1px solid var(--border);">
+                            <label><input type="checkbox" id="full_backup"> <strong>Backup Completo</strong> (Inclui coletâneas e configurações)</label>
+                        </div>
+                    ` : ''}
+                    <div style="margin-top: 1.5rem;">
+                        <button class="btn-ghost" style="width: 100%; margin-bottom: 0.5rem;" onclick="previewExport('${format}')">Pré-visualização WhatsApp</button>
+                    </div>
+                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem">
+                        <button class="btn-ghost" style="flex: 1" onclick="document.getElementById('exportModal').remove()">Cancelar</button>
+                        <button class="btn-primary" style="flex: 1" onclick="executeExport('${format}')">Exportar</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        };
+
+        const previewExport = (format) => {
+            const items = selectedItems.size > 0
+                ? Array.from(selectedItems).map(id => currentItems.find(i => i.id === id))
+                : currentItems;
+
+            const fields = Array.from(document.querySelectorAll('#exportFields input:checked')).map(i => i.dataset.field);
+
+            let text = "*Resumo Desapego*\n\n";
+            items.forEach(item => {
+                text += fields.map(f => {
+                    if (f === 'desapegoVal' || f === 'newVal') return `${f === 'desapegoVal' ? 'Venda' : 'Loja'}: R$ ${item[f]}`;
+                    return `${item[f]}`;
+                }).join(" - ") + "\n";
+            });
+
+            const previewModal = document.createElement('div');
+            previewModal.className = 'modal-overlay';
+            previewModal.style.display = 'flex';
+            previewModal.id = 'previewModal';
+            previewModal.innerHTML = `
+                <div class="modal" style="max-width: 400px; padding: 2rem;">
+                    <h3>Pré-visualização WhatsApp</h3>
+                    <textarea style="width: 100%; height: 200px; margin: 1.5rem 0;" id="copyText">${text}</textarea>
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn-ghost" style="flex: 1" onclick="document.getElementById('previewModal').remove()">Fechar</button>
+                        <button class="btn-primary" style="flex: 1" onclick="copyToClipboard()">Copiar</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(previewModal);
+        };
+
+        const copyToClipboard = (text) => {
+            if (text) {
+                const el = document.createElement('textarea');
+                el.value = text;
+                document.body.appendChild(el);
+                el.select();
+                document.execCommand('copy');
+                document.body.removeChild(el);
+                alert('Copiado para o clipboard!');
+                return;
+            }
+            const txt = document.getElementById('copyText');
+            if (txt) {
+                txt.select();
+                document.execCommand('copy');
+                alert('Copiado para o clipboard!');
+            }
+        };
+
+        const executeExport = async (format) => {
+            const items = selectedItems.size > 0
+                ? Array.from(selectedItems).map(id => currentItems.find(i => i.id === id))
+                : currentItems;
+
+            const fields = Array.from(document.querySelectorAll('#exportFields input:checked')).map(i => i.dataset.field);
+
+            if (format === 'csv') {
+                const headers = fields.map(f => f);
+                const rows = items.map(i => fields.map(f => i[f]));
+                const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].map(e => e.join(",")).join("\n");
+                triggerDownloadLink(csvContent, `export_${Date.now()}.csv`);
+            } else if (format === 'json') {
+                const isFullBackup = document.getElementById('full_backup')?.checked;
+                let dataToExport = items;
+
+                if (isFullBackup) {
+                    const collectionsTransaction = db.transaction(['collections'], 'readonly');
+                    const collections = await new Promise(resolve => {
+                        const req = collectionsTransaction.objectStore('collections').getAll();
+                        req.onsuccess = () => resolve(req.result);
+                    });
+                    dataToExport = {
+                        version: '1.0',
+                        timestamp: new Date().toISOString(),
+                        items: items,
+                        collections: collections
+                    };
+                }
+
+                const blob = new Blob([JSON.stringify(dataToExport, null, 2)], { type: 'application/json' });
+                triggerDownloadLink(URL.createObjectURL(blob), `export_${isFullBackup ? 'backup_' : ''}${Date.now()}.json`);
+            } else if (format === 'pdf') {
+                const { jsPDF } = window.jspdf;
+                const doc = new jsPDF();
+                const title = document.getElementById('pdf_title').value;
+                const subtitle = document.getElementById('pdf_subtitle').value;
+
+                doc.setFontSize(18);
+                doc.text(title, 14, 20);
+                doc.setFontSize(12);
+                doc.text(subtitle, 14, 30);
+
+                const tableData = items.map(i => fields.map(f => {
+                    if (f === 'desapegoVal' || f === 'newVal') return `R$ ${i[f]}`;
+                    return i[f];
+                }));
+
+                doc.autoTable({
+                    head: [fields.map(f => f.toUpperCase())],
+                    body: tableData,
+                    startY: 40
+                });
+
+                doc.save(`export_${Date.now()}.pdf`);
+            }
+            document.getElementById('exportModal').remove();
+        };
+
+        const triggerDownloadLink = (url, name) => {
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = name;
+            link.click();
+        };
+
+        // Data Import Logic
+        // Unified Backup Management
+        const openBackupModal = () => {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.style.display = 'flex';
+            modal.id = 'backupModal';
+            modal.innerHTML = `
+                <div class="modal" style="max-width: 500px; padding: 2rem;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 2rem;">
+                        <h2>Gestão de Dados</h2>
+                        <button class="btn-ghost icon-btn" onclick="document.getElementById('backupModal').remove()"><i data-lucide="x"></i></button>
+                    </div>
+                    
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div style="padding: 1.5rem; border: 1px dashed var(--border); border-radius: var(--radius); text-align: center;">
+                            <i data-lucide="upload-cloud" size="32" style="color: var(--primary); margin-bottom: 1rem;"></i>
+                            <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">Importar</h3>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">JSON ou CSV</p>
+                            <input type="file" id="importFile" accept=".json,.csv" hidden onchange="handleImport(event)">
+                            <button class="btn-primary" style="width: 100%; font-size: 0.8rem;" onclick="document.getElementById('importFile').click()">Selecionar</button>
+                        </div>
+                        
+                        <div style="padding: 1.5rem; border: 1px solid var(--border); border-radius: var(--radius); text-align: center;">
+                            <i data-lucide="download" size="32" style="color: var(--success); margin-bottom: 1rem;"></i>
+                            <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">Exportar</h3>
+                            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Backup Completo</p>
+                            <button class="btn-ghost" style="width: 100%; font-size: 0.8rem; border: 1px solid var(--border);" onclick="executeExport('json')">Download JSON</button>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+                        <h3 style="font-size: 0.9rem; margin-bottom: 1rem;">Outros Formatos (Apenas Itens)</h3>
+                        <div style="display: flex; gap: 1rem;">
+                            <button class="btn-ghost" style="flex: 1; font-size: 0.8rem; border: 1px solid var(--border);" onclick="openExportModal('csv')">CSV</button>
+                            <button class="btn-ghost" style="flex: 1; font-size: 0.8rem; border: 1px solid var(--border);" onclick="openExportModal('pdf')">PDF</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            lucide.createIcons();
+        };
+
+        const handleImport = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                const content = e.target.result;
+                if (file.name.endsWith('.json')) {
+                    try {
+                        const data = JSON.parse(content);
+                        if (Array.isArray(data)) {
+                            await importItems(data);
+                        } else if (data.items) {
+                            await importItems(data.items, data.collections || []);
+                        } else {
+                            alert('Formato JSON não reconhecido.');
+                        }
+                    } catch (err) { alert('Erro ao processar JSON: ' + err); }
+                } else if (file.name.endsWith('.csv')) {
+                    try {
+                        const lines = content.split('\n');
+                        const headers = lines[0].split(',').map(h => h.trim());
+                        const items = lines.slice(1).filter(l => l.trim()).map(line => {
+                            const values = line.split(',').map(v => v.trim());
+                            const obj = {};
+                            headers.forEach((h, i) => obj[h] = values[i]);
+                            return obj;
+                        });
+                        await importItems(items);
+                    } catch (err) { alert('Erro ao processar CSV: ' + err); }
+                }
+                document.getElementById('backupModal').remove();
+            };
+            reader.readAsText(file);
+        };
+
+        const importItems = async (items, collections = []) => {
+            const transaction = db.transaction(['items', 'collections'], 'readwrite');
+            const itemStore = transaction.objectStore('items');
+            const colStore = transaction.objectStore('collections');
+
+            for (const item of items) {
+                const cleanItem = {
+                    code: item.code || `IMP-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+                    description: item.description || 'Item Importado',
+                    details: item.details || '',
+                    quantity: parseInt(item.quantity) || 1,
+                    newVal: parseFloat(item.newVal) || 0,
+                    desapegoVal: parseFloat(item.desapegoVal) || 0,
+                    images: item.images || [],
+                    attachments: item.attachments || [],
+                    status: item.status || 'disponível',
+                    hasDamage: !!item.hasDamage || (parseInt(item.damageCount) > 0),
+                    createdAt: item.createdAt || new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    pinned: !!item.pinned
+                };
+                await itemStore.add(cleanItem);
+            }
+
+            for (const col of collections) {
+                const cleanCol = {
+                    name: col.name || 'Coletânea Importada',
+                    itemIds: col.itemIds || [],
+                    createdAt: col.createdAt || new Date().toISOString()
+                };
+                await colStore.add(cleanCol);
+            }
+
+            loadItems();
+            alert(`${items.length} itens e ${collections.length} coletâneas importados com sucesso!`);
+        };
+
+        // Collection Management
+        const openCollectionModal = () => {
+            const name = prompt("Nome da Coletânea:");
+            if (!name) return;
+
+            const collection = {
+                name: name,
+                itemIds: Array.from(selectedItems),
+                createdAt: new Date().toISOString()
+            };
+
+            const transaction = db.transaction(['collections'], 'readwrite');
+            transaction.objectStore('collections').add(collection);
+            alert('Coletânea salva!');
+            toggleSelectionMode();
+        };
+
+
+        const initFormListeners = () => {
+            const form = document.getElementById('itemForm');
+            if (form) form.onsubmit = saveItem;
+
+            const fileInput = document.getElementById('fm_files');
+            if (fileInput) fileInput.onchange = handleFileSelect;
+
+            const cameraInput = document.getElementById('fm_camera');
+            if (cameraInput) cameraInput.onchange = handleFileSelect;
+
+            const qrBtn = document.getElementById('genQR');
+            if (qrBtn) qrBtn.onclick = () => generateCode('QR');
+
+            const barcodeBtn = document.getElementById('genBarcode');
+            if (barcodeBtn) barcodeBtn.onclick = () => generateCode('Barcode');
+
+            // Add auto-code trigger
+            const codeInput = document.getElementById('fm_code');
+            if (codeInput) {
+                const btnContainer = codeInput.parentElement;
+                if (!document.getElementById('autoCodeBtn')) {
+                    const autoBtn = document.createElement('button');
+                    autoBtn.id = 'autoCodeBtn';
+                    autoBtn.type = 'button';
+                    autoBtn.className = 'btn-ghost icon-btn';
+                    autoBtn.title = t('autoCode');
+                    autoBtn.innerHTML = '<i data-lucide="refresh-cw" size="18"></i>';
+                    autoBtn.onclick = setupAutoCode;
+                    btnContainer.appendChild(autoBtn);
+                }
+            }
+            lucide.createIcons();
+        };
+
+        // Code Configuration Modal
+        const openCodeConfigModal = async () => {
+            const prefixValue = await getSetting('code_prefix', 'DSP-');
+            const startValue = await getSetting('code_start', 1);
+            const digitsValue = await getSetting('code_digits', 3);
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.style.display = 'flex';
+            modal.id = 'configModal';
+            modal.innerHTML = `
+                <div class="modal" style="max-width: 400px; padding: 2rem;">
+                    <h3>Configuração de Código</h3>
+                    <div class="form-group" style="margin-top: 1.5rem">
+                        <label>Prefixo</label>
+                        <input type="text" id="cfg_prefix" value="${prefixValue}">
+                    </div>
+                    <div class="form-group">
+                        <label>Iniciar em</label>
+                        <input type="number" id="cfg_start" value="${startValue}">
+                    </div>
+                    <div class="form-group">
+                        <label>Dígitos</label>
+                        <input type="number" id="cfg_digits" value="${digitsValue}">
+                    </div>
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem">
+                        <button class="btn-ghost" style="flex: 1" onclick="document.getElementById('configModal').remove()">Cancelar</button>
+                        <button class="btn-primary" style="flex: 1" id="saveConfig">Salvar</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            document.getElementById('saveConfig').onclick = async () => {
+                await saveSetting('code_prefix', document.getElementById('cfg_prefix').value);
+                await saveSetting('code_start', parseInt(document.getElementById('cfg_start').value));
+                await saveSetting('code_digits', parseInt(document.getElementById('cfg_digits').value));
+                document.getElementById('configModal').remove();
+                alert('Configurações salvas!');
+            };
+        };
+
+        // Duplication Logic
+        const duplicateItem = async (id) => {
+            const original = currentItems.find(i => i.id === id);
+            if (!original) return;
+
+            const nextCode = await generateSequentialCode();
+            const newItem = { ...original };
+            delete newItem.id;
+            newItem.code = nextCode;
+            newItem.createdAt = new Date().toISOString();
+            newItem.updatedAt = new Date().toISOString();
+
+            const transaction = db.transaction(['items'], 'readwrite');
+            await transaction.objectStore('items').add(newItem);
+            loadItems();
+            alert('Item duplicado com novo código: ' + nextCode);
+        };
+
+        const generateSequentialCode = async () => {
+            const prefix = await getSetting('code_prefix', 'DSP-');
+            const start = await getSetting('code_start', 1);
+            const digits = await getSetting('code_digits', 3);
+
+            const nextIndex = currentItems.length + start;
+            return prefix + nextIndex.toString().padStart(digits, '0');
+        };
+
+        // Pinning Logic
+        const togglePin = async (id, event) => {
+            event.stopPropagation();
+            const item = currentItems.find(i => i.id === id);
+            if (!item) return;
+
+            item.pinned = !item.pinned;
+            const transaction = db.transaction(['items'], 'readwrite');
+            await transaction.objectStore('items').put(item);
+            loadItems();
+        };
+
+        // Render functions update (includes Pinning, Duplication, and better UI)
+        const renderItems = () => {
+            const container = document.getElementById('itemsContainer');
+            if (!container) return;
+
+            // Apply Filters
+            let filtered = currentItems.filter(item => {
+                const matchesSearch = !currentFilters.search ||
+                    item.code.toLowerCase().includes(currentFilters.search) ||
+                    item.description.toLowerCase().includes(currentFilters.search) ||
+                    item.details.toLowerCase().includes(currentFilters.search);
+
+                const matchesStatus = currentFilters.status === 'all' || (item.status || 'disponível') === currentFilters.status;
+                const matchesPinned = !currentFilters.onlyPinned || item.pinned;
+                const matchesImage = !currentFilters.hasImage || (item.images && item.images.length > 0);
+                const matchesDamage = !currentFilters.hasDamage || (item.hasDamage || item.damageCount > 0);
+
+                // Tag Filter
+                const itemTags = item.tags || [];
+                // If no tags selected, match all. If tags selected, item must have at least one of the selected tags (OR logic)
+                const matchesTags = currentFilters.tags.length === 0 || currentFilters.tags.some(t => itemTags.includes(t));
+
+                return matchesSearch && matchesStatus && matchesPinned && matchesImage && matchesDamage && matchesTags;
+            });
+
+            // Apply Sorting
+            filtered.sort((a, b) => {
+                if (a.pinned && !b.pinned) return -1;
+                if (!a.pinned && b.pinned) return 1;
+
+                switch (currentFilters.sortBy) {
+                    case 'oldest': return new Date(a.createdAt) - new Date(b.createdAt);
+                    case 'code': return a.code.localeCompare(b.code);
+                    case 'price_asc': return (a.desapegoVal || 0) - (b.desapegoVal || 0);
+                    case 'price_desc': return (b.desapegoVal || 0) - (a.desapegoVal || 0);
+                    default: return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
+                }
+            });
+
+            const activeItems = filtered.filter(i => !i.status || i.status === 'disponível');
+            const archiveItems = filtered.filter(i => i.status && i.status !== 'disponível');
+
+            let html = '';
+            if (activeItems.length > 0) {
+                if (archiveItems.length > 0) {
+                    html += `<div class="section-header"><i data-lucide="package"></i> ${t('activeItems')} (${activeItems.length})</div>`;
+                }
+                html += activeItems.map(item => renderItemCard(item)).join('');
+            }
+
+            if (archiveItems.length > 0) {
+                html += `<div class="section-header"><i data-lucide="archive"></i> ${t('archive')} (${archiveItems.length})</div>`;
+                html += archiveItems.map(item => renderItemCard(item)).join('');
+            }
+
+            if (filtered.length === 0) {
+                html = '<div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: var(--text-muted);">Nenhum item encontrado com estes filtros.</div>';
+            }
+
+            const countEl = document.getElementById('itemsCount');
+            if (countEl) countEl.textContent = `${filtered.length} ${t('itemsFound')}`;
+            container.innerHTML = html;
+            lucide.createIcons();
+        };
+
+        const viewItem = (id) => {
+            const item = currentItems.find(i => i.id === id);
+            if (!item) return;
+
+            const modal = document.getElementById('itemModal');
+            modal.innerHTML = renderItemView(item);
+            document.getElementById('itemModalOverlay').style.display = 'flex';
+            lucide.createIcons();
+        };
+
+        const renderItemView = (item) => {
+            const totalDesapego = (item.quantity * item.desapegoVal).toFixed(2);
+            const totalNew = (item.quantity * item.newVal).toFixed(2);
+            const savings = (totalNew - totalDesapego).toFixed(2);
+            const status = item.status || 'disponível';
+            const images = item.images && item.images.length > 0 ? item.images : ['https://via.placeholder.com/600x400?text=Sem+Imagem'];
+
+            const whatsappText = `*${item.description}*\n` +
+                `Cód: ${item.code}\n` +
+                `Qtd: ${item.quantity}\n` +
+                `Estado: ${t(status === 'disponível' ? 'available' : status)}\n` +
+                `Valor: R$ ${totalDesapego}\n` +
+                (item.details ? `Obs: ${item.details}` : '');
+
+            return `
+                <div class="modal-content" style="padding: 0; overflow: hidden;">
+                    <div class="view-header" style="position: relative;">
+                        <div class="view-carousel" style="display: flex; overflow-x: auto; scroll-snap-type: x mandatory; background: #eee;">
+                            ${images.map(img => `<img src="${img}" style="width: 100%; flex-shrink: 0; scroll-snap-align: start; max-height: 400px; object-fit: contain;">`).join('')}
+                        </div>
+                        <button class="btn-ghost icon-btn" onclick="closeModal()" style="position: absolute; top: 1rem; right: 1rem; background: rgba(0,0,0,0.5); color: white;">
+                            <i data-lucide="x"></i>
+                        </button>
+                    </div>
+                    
+                    <div style="padding: 2rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                            <div>
+                                <span class="card-code">${item.code}</span>
+                                <h2 style="font-size: 1.5rem; margin-top: 0.25rem;">${item.description}</h2>
+                                <span class="status-badge status-${status}">${t(status === 'disponível' ? 'available' : status)}</span>
+                            </div>
+                            <div style="text-align: right;">
+                                <div style="font-size: 2rem; font-weight: 800; color: var(--primary);">R$ ${totalDesapego}</div>
+                                <div style="font-size: 0.85rem; color: var(--text-muted); text-decoration: line-through;">R$ ${totalNew} (Loja)</div>
+                                <div style="font-size: 0.9rem; color: var(--success); font-weight: 700;">Economia: R$ ${savings}</div>
+                            </div>
+                        </div>
+
+                        ${item.details ? `
+                            <div style="margin: 1.5rem 0; padding: 1.5rem; background: var(--bg); border-radius: var(--radius); border: 1px solid var(--border);">
+                                <label style="font-weight: 700; font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); display: block; margin-bottom: 0.5rem;">Detalhes</label>
+                                <p style="white-space: pre-wrap;">${item.details}</p>
+                            </div>
+                        ` : ''}
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+                            <div style="padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); text-align: center;">
+                                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Quantidade</span>
+                                <div style="font-size: 1.2rem; font-weight: 700;">${item.quantity}x</div>
+                            </div>
+                            <div style="padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); text-align: center;">
+                                <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Avarias</span>
+                                <div style="font-size: 1.2rem; font-weight: 700;">${item.hasDamage ? 'Possui' : 'Nenhuma'}</div>
+                            </div>
+                        </div>
+
+                        <div style="background: var(--bg); padding: 1rem; border-radius: var(--radius); margin-bottom: 2rem; border-left: 4px solid var(--success);">
+                            <label style="font-weight: 700; font-size: 0.8rem; color: var(--success); display: block; margin-bottom: 0.5rem;">Resumo WhatsApp</label>
+                            <pre style="font-family: inherit; font-size: 0.9rem; margin-bottom: 1rem; background: white; padding: 0.75rem; border-radius: 4px; border: 1px solid var(--border);">${whatsappText}</pre>
+                            <button class="btn-primary" style="width: 100%; border-radius: 8px;" onclick="copyToClipboard('${whatsappText.replace(/'/g, "\\'").replace(/\n/g, '\\n')}')">
+                                <i data-lucide="copy" size="18"></i> Copiar Texto Formatado
+                            </button>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem;">
+                            <button class="btn-ghost" style="flex: 1; border: 1px solid var(--border);" onclick="openModal(${item.id})">
+                                <i data-lucide="edit-2"></i> ${t('edit')}
+                            </button>
+                            <button class="btn-ghost" style="flex: 1; color: var(--danger); border: 1px solid var(--border);" onclick="deleteItem(${item.id})">
+                                <i data-lucide="trash-2"></i> ${t('delete')}
+                            </button>
+                            <button class="btn-primary" style="flex: 0 0 auto;" onclick="shareWhatsApp(${item.id})">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-whatsapp" viewBox="0 0 16 16">
+  <path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/>
+</svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        const renderItemCard = (item) => {
+            const isSelected = selectedItems.has(item.id);
+            const totalNew = (item.quantity * item.newVal).toFixed(2);
+            const totalDesapego = (item.quantity * item.desapegoVal).toFixed(2);
+            const savings = (totalNew - totalDesapego).toFixed(2);
+            const cover = item.images?.[0] || 'https://via.placeholder.com/300x200?text=Sem+Imagem';
+            const status = item.status || 'disponível';
+
+            // Render Tags
+            let tagsHtml = '';
+            if (item.tags && item.tags.length > 0) {
+                tagsHtml = `<div class="card-tags" style="display:flex; flex-wrap:wrap; gap:0.25rem; margin-top:0.5rem; padding-top:0.5rem; border-top:1px dashed var(--border);">
+                    ${item.tags.map(tagId => {
+                    const tag = cachedTags.find(t => t.id === tagId);
+                    if (!tag) return '';
+                    return `<span style="font-size:0.65rem; padding:0.1rem 0.4rem; border-radius:8px; background:${tag.color}20; color:${tag.color}; border:1px solid ${tag.color}40;">${tag.name}</span>`;
+                }).join('')}
+                </div>`;
+            }
+
+            let tagsListHtml = '';
+            if (item.tags && item.tags.length > 0) {
+                tagsListHtml = `<div style="display:flex; gap:0.25rem; flex-wrap:wrap;">
+                    ${item.tags.map(tagId => {
+                    const tag = cachedTags.find(t => t.id === tagId);
+                    if (!tag) return '';
+                    return `<span style="font-size:0.65rem; padding:0.1rem 0.4rem; border-radius:8px; background:${tag.color}20; color:${tag.color}; border:1px solid ${tag.color}40;">${tag.name}</span>`;
+                }).join('')}
+                 </div>`;
+            }
+
+            if (currentView === 'list') {
+                return `
+                    <div class="list-item ${isSelected ? 'selected' : ''} ${item.pinned ? 'pinned' : ''}" onclick="isSelectionMode ? toggleItemSelection(${item.id}, event) : viewItem(${item.id})">
+                        <div class="list-thumb">
+                            <img src="${cover}">
+                            <div class="selection-indicator">${isSelected ? '✓' : ''}</div>
+                            ${item.pinned ? '<div class="pin-indicator"><i data-lucide="pin" size="10"></i></div>' : ''}
+                        </div>
+                        <div class="list-info">
+                            <div style="display:flex; justify-content:space-between; align-items:start">
+                                <span class="card-code">${item.code}</span>
+                                <span class="status-badge status-${status}">${t(status === 'disponível' ? 'available' : status)}</span>
+                            </div>
+                            <h3>${item.description}</h3>
+                            ${tagsListHtml}
+                        </div>
+                        <div class="list-stats">
+                            <div class="list-stat"><span>R$ ${totalDesapego}</span></div>
+                        </div>
+                        <div class="list-actions" onclick="event.stopPropagation()">
+                            <button class="btn-ghost icon-btn" onclick="togglePin(${item.id}, event)"><i data-lucide="pin" style="${item.pinned ? 'fill: var(--primary)' : ''}"></i></button>
+                            <button class="btn-ghost icon-btn" onclick="duplicateItem(${item.id})"><i data-lucide="copy"></i></button>
+                            <button class="btn-ghost icon-btn" onclick="shareWhatsApp(${item.id})"><i data-lucide="share-2"></i></button>
+                            <button class="btn-ghost icon-btn" style="color: var(--danger)" onclick="deleteItem(${item.id}, event)"><i data-lucide="trash-2"></i></button>
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="card ${isSelected ? 'selected' : ''} ${item.pinned ? 'pinned' : ''}" onclick="isSelectionMode ? toggleItemSelection(${item.id}, event) : viewItem(${item.id})">
+                    <div class="card-image">
+                        <img src="${cover}" alt="${item.description}">
+                        <div class="card-badge">${item.quantity}x</div>
+                        <div class="selection-indicator">${isSelected ? '✓' : ''}</div>
+                        <button class="pin-btn ${item.pinned ? 'active' : ''}" onclick="togglePin(${item.id}, event)">
+                            <i data-lucide="pin" size="16"></i>
+                        </button>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-header">
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span class="card-code">${item.code}</span>
+                                <span class="status-badge status-${status}">${t(status === 'disponível' ? 'available' : status)}</span>
+                            </div>
+                            <h3>${item.description}</h3>
+                        </div>
+                        <div class="card-stats">
+                            <div class="stat">
+                                <span class="label">Novo</span>
+                                <span class="val">R$ ${totalNew}</span>
+                            </div>
+                            <div class="stat highlight">
+                                <span class="label">Desapego</span>
+                                <span class="val">R$ ${totalDesapego}</span>
+                            </div>
+                            <div class="stat success">
+                                <span class="label">Economia</span>
+                                <span class="val">R$ ${savings}</span>
+                            </div>
+                        </div>
+                        ${tagsHtml}
+                        <div class="card-actions-row" onclick="event.stopPropagation()">
+                            <button class="btn-ghost icon-btn" onclick="duplicateItem(${item.id})"><i data-lucide="copy"></i></button>
+                            <button class="btn-ghost icon-btn" onclick="openModal(${item.id})"><i data-lucide="edit-2"></i></button>
+                            <button class="btn-ghost icon-btn" onclick="shareWhatsApp(${item.id})"><i data-lucide="share-2"></i></button>
+                            <button class="btn-ghost icon-btn" style="color: var(--danger)" onclick="deleteItem(${item.id}, event)"><i data-lucide="trash-2"></i></button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        // Summary Section Logic
+        const renderSummary = () => {
+            const items = selectedItems.size > 0
+                ? Array.from(selectedItems).map(id => currentItems.find(i => i.id === id))
+                : currentItems;
+
+            const stats = items.reduce((acc, item) => {
+                acc.totalNew += item.quantity * item.newVal;
+                acc.totalDesapego += item.quantity * item.desapegoVal;
+                return acc;
+            }, { totalNew: 0, totalDesapego: 0 });
+
+            const savingsValue = stats.totalNew - stats.totalDesapego;
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.style.display = 'flex';
+            modal.id = 'summaryModal';
+            modal.innerHTML = `
+                <div class="modal" style="max-width: 500px; padding: 2rem;">
+                    <h2>${t('summary')} ${selectedItems.size > 0 ? '(Selecionados)' : '(Todos)'}</h2>
+                    <div style="margin: 1.5rem 0; display: flex; flex-direction: column; gap: 1rem;">
+                        <div class="summary-item" style="display:flex; justify-content:space-between">
+                            <span>${t('totalNew')}</span>
+                            <strong>R$ ${stats.totalNew.toFixed(2)}</strong>
+                        </div>
+                        <div class="summary-item" style="display:flex; justify-content:space-between">
+                            <span>${t('totalDesapego')}</span>
+                            <strong>R$ ${stats.totalDesapego.toFixed(2)}</strong>
+                        </div>
+                        <div class="summary-item success" style="padding-top: 1rem; border-top: 1px solid var(--border); display:flex; justify-content:space-between">
+                            <span>${t('totalSaved')}</span>
+                            <strong style="font-size: 1.4rem;">R$ ${savingsValue.toFixed(2)}</strong>
+                        </div>
+                    </div>
+                    <button class="btn-primary" style="width: 100%" onclick="document.getElementById('summaryModal').remove()">Fechar</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+        };
+
+        // Auto Code Logic
+        const setupAutoCode = async () => {
+            const prefix = await getSetting('code_prefix', 'DSP-');
+            const start = await getSetting('code_start', 1);
+            const digits = await getSetting('code_digits', 3);
+
+            const nextId = currentItems.length + start;
+            const code = prefix + nextId.toString().padStart(digits, '0');
+            const codeInput = document.getElementById('fm_code');
+            if (codeInput) codeInput.value = code;
+        };
+
+        // Collection Manager UI
+        const viewCollections = async () => {
+            const transaction = db.transaction(['collections'], 'readonly');
+            const store = transaction.objectStore('collections');
+            const collections = await new Promise(resolve => {
+                const req = store.getAll();
+                req.onsuccess = () => resolve(req.result);
+            });
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.style.display = 'flex';
+            modal.id = 'collectionsModal';
+            modal.innerHTML = `
+                <div class="modal" style="max-width: 650px; padding: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h2>Minhas Coletâneas</h2>
+                        <button class="btn-ghost icon-btn" onclick="document.getElementById('collectionsModal').remove()"><i data-lucide="x"></i></button>
+                    </div>
+                    <div id="collectionsList" style="display: flex; flex-direction: column; gap: 1.5rem; max-height: 60vh; overflow-y: auto;">
+                        ${collections.length === 0 ? '<p>Nenhuma coletânea salva.</p>' : collections.map(c => `
+                            <div class="collection-item" style="padding: 1.5rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card-bg);">
+                                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                                    <div>
+                                        <h3 style="margin: 0; font-size: 1.2rem; color: var(--primary);">${c.name}</h3>
+                                        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0.25rem 0 0 0;">${c.itemIds.length} itens • ${new Date(c.createdAt).toLocaleDateString()}</p>
+                                    </div>
+                                    <div style="display: flex; gap: 0.5rem;">
+                                        <button class="btn-ghost icon-btn" title="Carregar" onclick="loadCollection(${JSON.stringify(c.itemIds).replace(/"/g, '&quot;')})"><i data-lucide="external-link" size="18"></i></button>
+                                        <button class="btn-ghost icon-btn" title="Excluir" onclick="deleteCollection(${c.id})"><i data-lucide="trash-2" size="18"></i></button>
+                                    </div>
+                                </div>
+                                <div style="display: flex; gap: 0.75rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+                                    <button class="btn-ghost" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;" onclick="exportCollection(${JSON.stringify(c).replace(/"/g, '&quot;')}, 'csv')">CSV</button>
+                                    <button class="btn-ghost" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;" onclick="exportCollection(${JSON.stringify(c).replace(/"/g, '&quot;')}, 'pdf')">PDF</button>
+                                    <button class="btn-primary" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;" onclick="previewCollectionWhatsApp(${JSON.stringify(c).replace(/"/g, '&quot;')})">WhatsApp</button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            lucide.createIcons();
+        };
+
+        const exportCollection = async (collection, format) => {
+            selectedItems = new Set(collection.itemIds);
+            openExportModal(format);
+        };
+
+        const previewCollectionWhatsApp = async (collection) => {
+            selectedItems = new Set(collection.itemIds);
+            previewExport('whatsapp');
+        };
+
+        const loadCollection = (itemIds) => {
+            selectedItems = new Set(itemIds);
+            isSelectionMode = true;
+            const modal = document.getElementById('collectionsModal');
+            if (modal) modal.remove();
+            renderItems();
+            updateSelectionUI();
+        };
+
+        const deleteCollection = async (id) => {
+            if (!confirm('Excluir esta coletânea?')) return;
+            const transaction = db.transaction(['collections'], 'readwrite');
+            await transaction.objectStore('collections').delete(id);
+            const modal = document.getElementById('collectionsModal');
+            if (modal) modal.remove();
+            viewCollections();
+        };
+
+        // Tag Management System
+        const openTagManager = async () => {
+            const tags = await getAllTags();
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.style.display = 'flex';
+            modal.id = 'tagManagerModal';
+
+            modal.innerHTML = `
+                <div class="modal" style="max-width: 600px; padding: 2rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                        <h2>Gerenciar Tags</h2>
+                        <button class="btn-ghost icon-btn" onclick="document.getElementById('tagManagerModal').remove()"><i data-lucide="x"></i></button>
+                    </div>
+
+                    <div style="background: var(--bg); padding: 1.5rem; border-radius: var(--radius); margin-bottom: 2rem;">
+                        <h3 style="font-size: 1rem; margin-bottom: 1rem;">Nova Tag</h3>
+                        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                            <div class="form-group" style="margin: 0; flex: 1 1 200px;">
+                                <input type="text" id="newTagName" placeholder="Nome da Tag (ex: Móveis)">
+                            </div>
+                             <div class="form-group" style="margin: 0; flex: 0 0 60px;">
+                                <input type="color" id="newTagColor" value="#6366f1" style="height: 42px; width: 100%; padding: 0.2rem;">
+                            </div>
+                            <button class="btn-primary" onclick="createTag()" style="flex: 1 1 auto; white-space: nowrap;">
+                                <i data-lucide="plus"></i> Adicionar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="tagList" style="max-height: 50vh; overflow-y: auto;">
+                        ${renderTagList(tags)}
+                    </div>
+                </div>
+            `;
+
+            document.body.appendChild(modal);
+            lucide.createIcons();
+
+            // Add Enter key support
+            const input = document.getElementById('newTagName');
+            if (input) {
+                input.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') createTag();
+                });
+            }
+        };
+
+        const renderTagList = (tags) => {
+            if (tags.length === 0) return '<p style="text-align: center; color: var(--text-muted);">Nenhuma tag criada.</p>';
+
+            // Sort Alphabetically
+            tags.sort((a, b) => a.name.localeCompare(b.name));
+
+            return `
+                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                    ${tags.map(tag => `
+                        <span class="tag-pill" style="background: ${tag.color || '#6366f1'}">
+                            ${tag.name}
+                            <button class="tag-remove" onclick="editTag('${tag.id}')" title="Editar">✎</button>
+                            <button class="tag-remove" onclick="deleteTag('${tag.id}')" title="Excluir">×</button>
+                        </span>
+                    `).join('')}
+                </div>
+            `;
+        };
+
+        const getAllTags = async () => {
+            const transaction = db.transaction(['tags'], 'readonly');
+            const store = transaction.objectStore('tags');
+            return new Promise(resolve => {
+                const req = store.getAll();
+                req.onsuccess = () => resolve(req.result || []);
+            });
+        };
+
+        const createTag = async () => {
+            const name = document.getElementById('newTagName').value.trim();
+            const color = document.getElementById('newTagColor').value;
+
+            if (!name) return alert('Nome da tag é obrigatório');
+
+            const newTag = {
+                id: crypto.randomUUID(),
+                name,
+                type: 'tag', // simplified
+                parentId: null,
+                color,
+                createdAt: new Date().toISOString()
+            };
+
+            const transaction = db.transaction(['tags'], 'readwrite');
+            await transaction.objectStore('tags').add(newTag);
+
+            cachedTags = await getAllTags(); // Update Cache
+            document.getElementById('tagManagerModal').remove();
+            openTagManager(); // Refresh
+            renderTagFilters(); // Update filters on main view
+        };
+
+        const editTag = async (id) => {
+            const tag = cachedTags.find(t => t.id === id);
+            if (!tag) return;
+
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.style.display = 'flex';
+            modal.id = 'editTagModal';
+            modal.innerHTML = `
+                <div class="modal" style="max-width: 400px; padding: 2rem;">
+                    <h3>Editar Tag</h3>
+                    <div class="form-group" style="margin-top: 1rem;">
+                        <label>Nome</label>
+                        <input type="text" id="editTagName" value="${tag.name}">
+                    </div>
+                    <div class="form-group">
+                        <label>Cor</label>
+                        <input type="color" id="editTagColor" value="${tag.color || '#6366f1'}" style="height: 40px;">
+                    </div>
+                    <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+                         <button class="btn-ghost" style="flex:1" onclick="document.getElementById('editTagModal').remove()">Cancelar</button>
+                         <button class="btn-primary" style="flex:1" id="saveEditTagBtn">Salvar</button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            document.getElementById('saveEditTagBtn').onclick = async () => {
+                const newName = document.getElementById('editTagName').value.trim();
+                const newColor = document.getElementById('editTagColor').value;
+
+                if (!newName) return alert('Nome inválido');
+
+                tag.name = newName;
+                tag.color = newColor;
+
+                const transaction = db.transaction(['tags'], 'readwrite');
+                await transaction.objectStore('tags').put(tag);
+
+                cachedTags = await getAllTags(); // Global cache update
+                document.getElementById('editTagModal').remove();
+                document.getElementById('tagManagerModal').remove(); // Close manager to refresh it
+                openTagManager(); // Re-open manager
+                renderTagFilters(); // Update main filter bar
+                renderItems(); // Update item cards
+            };
+        };
+
+        const deleteTag = async (id) => {
+            if (!confirm('Tem certeza que deseja excluir esta tag?')) return;
+            const transaction = db.transaction(['tags'], 'readwrite');
+            await transaction.objectStore('tags').delete(id);
+
+            cachedTags = await getAllTags(); // Update Cache
+            document.getElementById('tagManagerModal').remove();
+            openTagManager();
+            renderTagFilters(); // Update filters on main view
+            renderItems(); // Update items (remove visual pill if it exists maybe? simple re-render handles display but not logical detachment from item. That is complex, lets just handle display.)
+        };
+
+        // UI Enhancements
+        const injectUIComponents = () => {
+            const actions = document.querySelector('.actions-top');
+            if (!actions) return;
+
+            // Define all components to be injected
+            const components = [
+                { id: 'backupBtn', icon: 'database', title: 'Backup / Dados', onclick: openBackupModal },
+                { id: 'tagsBtn', icon: 'tag', title: 'Gerenciar Tags', onclick: openTagManager },
+                { id: 'settingsBtn', icon: 'settings', title: 'Configurações', onclick: openCodeConfigModal },
+                { id: 'collectionsBtn', icon: 'folder-heart', title: 'Coletâneas', onclick: viewCollections },
+                { id: 'summaryBtn', icon: 'pie-chart', title: 'Resumo', onclick: renderSummary },
+                { id: 'selectionBtn', icon: 'check-square', title: 'Selecionar', onclick: toggleSelectionMode },
+                { id: 'viewToggle', icon: currentView === 'grid' ? 'layout-list' : 'layout-grid', title: 'Mudar Visão', onclick: toggleView }
+            ];
+
+            components.forEach(comp => {
+                if (document.getElementById(comp.id)) return;
+                const btn = document.createElement('button');
+                btn.id = comp.id;
+                btn.className = 'btn-ghost icon-btn';
+                btn.title = comp.title;
+                btn.innerHTML = `<i data-lucide="${comp.icon}"></i>`;
+                btn.onclick = comp.onclick;
+                actions.insertBefore(btn, actions.firstChild);
+            });
+
+            // Add selection bar if missing
+            if (!document.getElementById('selectionBar')) {
+                const bar = document.createElement('div');
+                bar.id = 'selectionBar';
+                bar.className = 'selection-bar';
+                bar.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <button class="btn-ghost" onclick="selectAllVisible()">${t('selectAll') || 'Selecionar Tudo'}</button>
+                        <div class="count">0 selecionados</div>
+                    </div>
+                    <div class="selection-actions">
+                        <button class="btn-ghost" onclick="openExportModal('csv')">CSV</button>
+                        <button class="btn-ghost" onclick="openExportModal('json')">JSON</button>
+                        <button class="btn-ghost" onclick="openExportModal('pdf')">PDF</button>
+                        <button class="btn-ghost" style="color: var(--danger)" onclick="deleteSelectedItems()">
+                            <i data-lucide="trash-2" size="16"></i> Excluir
+                        </button>
+                        <button class="btn-primary" onclick="openCollectionModal()">Salvar Coletânea</button>
+                    </div>
+                    <button class="btn-ghost icon-btn" onclick="toggleSelectionMode()"><i data-lucide="x"></i></button>
+                `;
+                document.body.appendChild(bar);
+            }
+
+            lucide.createIcons();
+        };
+
+        // Filter Bar Event Listeners
+        const initFilterListeners = () => {
+            const sortSelect = document.getElementById('sortSelect');
+            if (sortSelect) {
+                sortSelect.onchange = (e) => {
+                    currentFilters.sortBy = e.target.value;
+                    renderItems();
+                };
+            }
+
+            const statusFilter = document.getElementById('statusFilter');
+            if (statusFilter) {
+                statusFilter.onchange = (e) => {
+                    currentFilters.status = e.target.value;
+                    renderItems();
+                };
+            }
+
+            const toggleFilter = (id, key) => {
+                const btn = document.getElementById(id);
+                if (btn) {
+                    btn.onclick = () => {
+                        currentFilters[key] = !currentFilters[key];
+                        btn.classList.toggle('active', currentFilters[key]);
+                        renderItems();
+                    };
+                }
+            };
+
+            toggleFilter('filterPinned', 'onlyPinned');
+            toggleFilter('filterImage', 'hasImage');
+            toggleFilter('filterDamage', 'hasDamage');
+        };
+
+        const renderTagFilters = async () => {
+            const tags = await getAllTags();
+            const container = document.getElementById('tagFilterRow');
+            if (!container) return;
+
+            if (tags.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+            container.style.display = 'flex';
+
+            // Sort Alphabetically
+            tags.sort((a, b) => a.name.localeCompare(b.name));
+
+            container.innerHTML = tags.map(tag => {
+                const isActive = currentFilters.tags.includes(tag.id);
+                // Determine style based on color or default
+                const color = tag.color || 'var(--primary)';
+
+                // If active, solid background. If inactive, border only or light background
+                const style = isActive
+                    ? `background: ${color}; color: white; border-color: ${color};`
+                    : `border-color: ${color}; color: var(--text);`;
+
+                return `
+                    <div class="filter-chip ${isActive ? 'active' : ''}" 
+                         style="${style}; opacity: ${isActive ? 1 : 0.8}"
+                         onclick="toggleTagFilter('${tag.id}')">
+                        ${tag.name}
+                    </div>
+                 `;
+            }).join('');
+        };
+
+        const toggleTagFilter = (tagId) => {
+            const idx = currentFilters.tags.indexOf(tagId);
+            if (idx === -1) {
+                currentFilters.tags.push(tagId);
+            } else {
+                currentFilters.tags.splice(idx, 1);
+            }
+            renderTagFilters(); // Re-render to update styles
+            renderItems();
+        };
+
+        // Start App
+        window.onload = async () => {
+            initTheme();
+            updateUIStrings();
+            injectUIComponents();
+            initFilterListeners();
+            document.getElementById('addItemBtn').onclick = () => openModal();
+            try {
+                await initDB();
+                // Initial load of tags
+                cachedTags = await getAllTags();
+                loadItems();
+                renderTagFilters(); // Initial render
+            } catch (err) {
+                console.error('Failed to init DB:', err);
+            }
+        };
+    </script>
+</body>
+
+</html>
